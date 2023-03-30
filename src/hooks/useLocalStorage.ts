@@ -1,7 +1,10 @@
 import React from "react";
 
-const useLocalStorage = (key: string, defaultValue: unknown) => {
-  const [storage, setStorage] = React.useState(() => {
+const useLocalStorage = <T>(
+  key: string,
+  defaultValue: T
+): [T, React.Dispatch<React.SetStateAction<T>>] => {
+  const [storage, setStorage] = React.useState<T>(() => {
     if (typeof window === "undefined") return defaultValue;
 
     try {
@@ -22,7 +25,6 @@ const useLocalStorage = (key: string, defaultValue: unknown) => {
     try {
       const valueToStore = value instanceof Function ? value(storage) : value;
       setStorage(valueToStore);
-      console.log("this", valueToStore);
       if (typeof window !== "undefined") {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
