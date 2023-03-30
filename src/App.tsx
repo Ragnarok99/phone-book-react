@@ -1,8 +1,11 @@
 import React, { useState, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
+import useLocalStorage from "./hooks/useLocalStorage";
+
 function App() {
   let [isOpen, setIsOpen] = useState(true);
+  const [contacts, setContacts] = useLocalStorage("contacts", []);
 
   function closeModal() {
     setIsOpen(false);
@@ -16,7 +19,19 @@ function App() {
     e.preventDefault();
     const values = e.target.elements;
     // TODO: handle validations
+
+    // FIXME: type properly
+    setContacts((prevState: any) => [
+      ...prevState,
+      {
+        firstName: values.firstName.value,
+        lastName: values.lastName.value,
+        phoneNumber: values.phoneNumber.value,
+      },
+    ]);
   };
+
+  console.log(contacts);
 
   return (
     <main className="max-w-7xl m-auto">
@@ -29,17 +44,17 @@ function App() {
           </div>
         </div>
         <ul>
-          <li>hola list item</li>
+          {contacts.map((contact) => (
+            <li key={contact.firstName}>{contact.firstName}</li>
+          ))}
         </ul>
-        <div className="px-2 fixed inset-0 flex items-center justify-center">
-          <button
-            type="button"
-            onClick={openModal}
-            className="rounded-md bg-black bg-opacity-20 px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
-          >
-            new contact
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={openModal}
+          className="rounded-md bg-black bg-opacity-20 px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+        >
+          new contact
+        </button>
       </section>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -91,7 +106,7 @@ function App() {
                           <div className="mt-2">
                             <input
                               type="text"
-                              name="first-name"
+                              name="firstName"
                               id="first-name"
                               autoComplete="given-name"
                               className="px-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -108,7 +123,7 @@ function App() {
                           <div className="mt-2">
                             <input
                               type="text"
-                              name="last-name"
+                              name="lastName"
                               id="last-name"
                               autoComplete="family-name"
                               className="px-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -128,7 +143,7 @@ function App() {
                           <div className="mt-2">
                             <input
                               type="text"
-                              name="phone-number"
+                              name="phoneNumber"
                               id="phone-number"
                               autoComplete="family-name"
                               className="px-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
