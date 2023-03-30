@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import useLocalStorage from "./hooks/useLocalStorage";
 import AddContactModal from "./components/add-contact-modal";
+import ContactCard from "./components/contact-card";
 import { Contact } from "./types";
 
 function App() {
@@ -46,7 +47,7 @@ function App() {
             />
           </div>
         </div>
-        <ul>
+        <ul className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {contacts
             .filter(
               (contact) =>
@@ -54,7 +55,7 @@ function App() {
                 contact.phoneNumber.includes(search)
             )
             .map((contact) => (
-              <li key={contact.firstName}>{contact.firstName}</li>
+              <ContactCard key={contact.firstName} contact={contact} />
             ))}
         </ul>
         <button
