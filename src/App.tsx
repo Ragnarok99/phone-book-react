@@ -4,7 +4,8 @@ import { Dialog, Transition } from "@headlessui/react";
 import useLocalStorage from "./hooks/useLocalStorage";
 
 function App() {
-  let [isOpen, setIsOpen] = useState(true);
+  let [isOpen, setIsOpen] = useState(false);
+  let [search, setSearch] = useState("");
   const [contacts, setContacts] = useLocalStorage("contacts", []);
 
   function closeModal() {
@@ -15,6 +16,9 @@ function App() {
     setIsOpen(true);
   }
 
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const values = e.target.elements;
@@ -31,8 +35,6 @@ function App() {
     ]);
   };
 
-  console.log(contacts);
-
   return (
     <main className="max-w-7xl m-auto">
       <h1 className="text-center pt-4">Phone book </h1>
@@ -40,13 +42,25 @@ function App() {
         <div>
           <div className="grid gap-1">
             <label htmlFor="search">search</label>
-            <input type="text" name="search" id="search" />
+            <input
+              value={search}
+              onChange={handleSearch}
+              type="text"
+              name="search"
+              id="search"
+            />
           </div>
         </div>
         <ul>
-          {contacts.map((contact) => (
-            <li key={contact.firstName}>{contact.firstName}</li>
-          ))}
+          {contacts
+            .filter(
+              (contact) =>
+                contact.firstName.includes(search) ||
+                contact.phoneNumber.includes(search)
+            )
+            .map((contact) => (
+              <li key={contact.firstName}>{contact.firstName}</li>
+            ))}
         </ul>
         <button
           type="button"
@@ -86,7 +100,7 @@ function App() {
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Payment successful
+                    Add a new contact
                   </Dialog.Title>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">

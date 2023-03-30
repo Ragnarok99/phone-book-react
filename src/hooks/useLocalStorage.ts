@@ -1,7 +1,5 @@
 import React from "react";
 
-type Props = {};
-
 const useLocalStorage = (key: string, defaultValue: unknown) => {
   const [storage, setStorage] = React.useState(() => {
     if (typeof window === "undefined") return defaultValue;
