@@ -5,24 +5,46 @@ import useLocalStorage from "./hooks/useLocalStorage";
 import AddContactModal from "./components/add-contact-modal";
 import ContactCard from "./components/contact-card";
 import { Contact } from "./types";
+import RemoveContactConfirmationModal from "./components/remove-contact-confirmation-modal";
 
 function App() {
-  let [isOpen, setIsOpen] = useState(false);
-  let [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [isConfirmationRemovalModalOpen, setIsConfirmationRemovalModalOpen] =
+    useState(false);
+  const [search, setSearch] = useState("");
+  const [currentContactToBeRemoved, setCurrentContactToBeRemoved] =
+    useState<Contact>();
   const [contacts, setContacts] = useLocalStorage<Contact[]>("contacts", []);
 
   const toggleModal = (nextValue: boolean) => () => setIsOpen(nextValue);
+  const toggleConfirmationRemovalModalOpen = (nextValue: boolean) => () =>
+    setIsConfirmationRemovalModalOpen(nextValue);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
   };
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleContactRemove = (contact: Contact) => {
+    setCurrentContactToBeRemoved(contact);
+    toggleConfirmationRemovalModalOpen(true)();
+  };
+
+  const handleContactRemoveConfirmation = () => {
+    setContacts((prevState) =>
+      prevState.filter(
+        (contact) => contact.firstName !== currentContactToBeRemoved?.firstName
+      )
+    );
+    setCurrentContactToBeRemoved(undefined);
+    toggleConfirmationRemovalModalOpen(false)();
+  };
+
+  const handleSubmit = (e: React.SyntheticEvent<Element, Event>) => {
     e.preventDefault();
+    // @ts-ignore
     const values = e.target.elements;
     // TODO: handle validations
 
-    // FIXME: type properly
-    setContacts((prevState: any) => [
+    setContacts((prevState) => [
       ...prevState,
       {
         firstName: values.firstName.value,
@@ -30,6 +52,8 @@ function App() {
         phoneNumber: values.phoneNumber.value,
       },
     ]);
+
+    toggleModal(false)();
   };
 
   return (
@@ -92,7 +116,11 @@ function App() {
                 contact.phoneNumber.includes(search)
             )
             .map((contact) => (
-              <ContactCard key={contact.firstName} contact={contact} />
+              <ContactCard
+                key={contact.firstName}
+                contact={contact}
+                onRemove={handleContactRemove}
+              />
             ))}
         </ul>
 
@@ -108,6 +136,11 @@ function App() {
         isOpen={isOpen}
         handleSubmit={handleSubmit}
         closeModal={toggleModal(false)}
+      />
+      <RemoveContactConfirmationModal
+        isOpen={isConfirmationRemovalModalOpen}
+        onConfirm={handleContactRemoveConfirmation}
+        closeModal={toggleConfirmationRemovalModalOpen(false)}
       />
     </main>
   );
