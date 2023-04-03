@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { v4 } from "uuid";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 
 import useLocalStorage from "./hooks/useLocalStorage";
-import AddContactModal from "./components/add-contact-modal";
+import ContactModal from "./components/contact-modal";
 import ContactCard from "./components/contact-card";
 import { Contact } from "./types";
 import RemoveContactConfirmationModal from "./components/remove-contact-confirmation-modal";
@@ -11,14 +12,21 @@ function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmationRemovalModalOpen, setIsConfirmationRemovalModalOpen] =
     useState(false);
+  const [isEditContactModalOpen, setIsEditContactModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [currentContactToBeRemoved, setCurrentContactToBeRemoved] =
+    useState<Contact>();
+
+  const [currentContactToBeEdited, setCurrentContactToBeEdited] =
     useState<Contact>();
   const [contacts, setContacts] = useLocalStorage<Contact[]>("contacts", []);
 
   const toggleModal = (nextValue: boolean) => () => setIsOpen(nextValue);
   const toggleConfirmationRemovalModalOpen = (nextValue: boolean) => () =>
     setIsConfirmationRemovalModalOpen(nextValue);
+
+  const toggleEditModalOpen = (nextValue: boolean) => () =>
+    setIsEditContactModalOpen(nextValue);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -28,31 +36,43 @@ function App() {
     toggleConfirmationRemovalModalOpen(true)();
   };
 
+  const handleContactEdit = (contact: Contact) => {
+    setCurrentContactToBeEdited(contact);
+    toggleEditModalOpen(true)();
+  };
+
   const handleContactRemoveConfirmation = () => {
     setContacts((prevState) =>
       prevState.filter(
-        (contact) => contact.firstName !== currentContactToBeRemoved?.firstName
+        (contact) => contact.id !== currentContactToBeRemoved?.id
       )
     );
     setCurrentContactToBeRemoved(undefined);
     toggleConfirmationRemovalModalOpen(false)();
   };
 
-  const handleSubmit = (e: React.SyntheticEvent<Element, Event>) => {
-    e.preventDefault();
-    // @ts-ignore
-    const values = e.target.elements;
-    // TODO: handle validations
+  const handleSubmit = (data: Contact) => {
+    if (isEditContactModalOpen) {
+      setContacts((prevState) =>
+        prevState.map((contact) =>
+          contact.id === data.id ? { ...contact, ...data } : contact
+        )
+      );
+      setCurrentContactToBeEdited(undefined);
+      toggleEditModalOpen(false)();
+
+      return;
+    }
 
     setContacts((prevState) => [
       ...prevState,
       {
-        firstName: values.firstName.value,
-        lastName: values.lastName.value,
-        phoneNumber: values.phoneNumber.value,
+        id: v4(),
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
       },
     ]);
-
     toggleModal(false)();
   };
 
@@ -116,13 +136,14 @@ function App() {
                   .toLowerCase()
                   .includes(search.toLowerCase()) ||
                 contact.lastName.toLowerCase().includes(search.toLowerCase()) ||
-                contact.phoneNumber.includes(search)
+                String(contact.phoneNumber).includes(search)
             )
             .map((contact) => (
               <ContactCard
                 key={contact.firstName}
                 contact={contact}
                 onRemove={handleContactRemove}
+                onEdit={handleContactEdit}
               />
             ))}
         </ul>
@@ -135,10 +156,15 @@ function App() {
           <UserPlusIcon className="w-10" />
         </button>
       </section>
-      <AddContactModal
-        isOpen={isOpen}
+      <ContactModal
+        isOpen={isOpen || isEditContactModalOpen}
+        contact={currentContactToBeEdited}
         handleSubmit={handleSubmit}
-        closeModal={toggleModal(false)}
+        closeModal={() => {
+          setIsOpen(false);
+          setIsEditContactModalOpen(false);
+          setCurrentContactToBeEdited(undefined);
+        }}
       />
       <RemoveContactConfirmationModal
         isOpen={isConfirmationRemovalModalOpen}
