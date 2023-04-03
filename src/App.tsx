@@ -112,7 +112,10 @@ function App() {
           {contacts
             .filter(
               (contact) =>
-                contact.firstName.includes(search) ||
+                contact.firstName
+                  .toLowerCase()
+                  .includes(search.toLowerCase()) ||
+                contact.lastName.toLowerCase().includes(search.toLowerCase()) ||
                 contact.phoneNumber.includes(search)
             )
             .map((contact) => (
